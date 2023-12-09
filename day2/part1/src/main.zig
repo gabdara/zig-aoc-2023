@@ -1,10 +1,10 @@
 const std = @import("std");
+const TextReader = @import("text-reader.zig").TextReader;
 const print = std.debug.print;
 const parseInt = std.fmt.parseInt;
 const tokenizeScalar = std.mem.tokenizeScalar;
 const tokenizeSequence = std.mem.tokenizeSequence;
 const Allocator = std.mem.Allocator;
-const FixedBufferStream = std.io.FixedBufferStream;
 const File = std.fs.File;
 const ArrayList = std.ArrayList;
 
@@ -20,7 +20,7 @@ test "Day 2: part 1" {
     var input_stream = std.io.fixedBufferStream(input);
 
     const bag = Bag{ .red = 12, .green = 13, .blue = 14 };
-    const total = bag.run(FixedBufferStream([]const u8), &input_stream);
+    const total = bag.run(input_stream.reader());
 
     try std.testing.expectEqual(total, 8);
 }
@@ -34,7 +34,7 @@ const Bag = struct {
         return RGB{ self.red, self.green, self.blue };
     }
 
-    pub fn run(self: Bag, comptime T: type, input_stream: *T) !u32 {
+    pub fn run(self: Bag, reader: anytype) !u32 {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena.deinit();
 
@@ -42,9 +42,8 @@ const Bag = struct {
 
         var games = std.ArrayList(Game).init(allocator);
 
-        var buf_reader = std.io.bufferedReader(input_stream.reader());
-        var buf: [1024]u8 = undefined;
-        while (buf_reader.reader().readUntilDelimiterOrEof(&buf, '\n') catch "0") |line| {
+        var line_it = TextReader.read(reader);
+        while (line_it.next() catch null) |line| {
             var lineIt = tokenizeScalar(u8, line[5..], ':');
             var game = Game.init(allocator, parseInt(u8, lineIt.next().?, 10) catch 0);
 
@@ -109,7 +108,7 @@ pub fn main() !void {
     defer file.close();
 
     const bag = Bag{ .red = 12, .green = 13, .blue = 14 };
-    const total = bag.run(File, &file);
+    const total = bag.run(file.reader());
 
     print("Total: {!d}\n", .{total});
 }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const TextReader = @import("text-reader.zig").TextReader;
 const print = std.debug.print;
 const FixedBufferStream = std.io.FixedBufferStream;
 const File = std.fs.File;
@@ -15,7 +16,7 @@ test "Day 1: part 2" {
     ;
 
     var input_stream = std.io.fixedBufferStream(input);
-    const total = sumCalibrationValues(FixedBufferStream([]const u8), &input_stream);
+    const total = sumCalibrationValues(input_stream.reader());
 
     try std.testing.expectEqual(total, 281);
 }
@@ -62,13 +63,11 @@ fn getNumberFromLine(line: []const u8) u8 {
     return std.fmt.parseInt(u8, nrStr, 10) catch 0;
 }
 
-fn sumCalibrationValues(comptime T: type, input_stream: *T) u32 {
-    var buf_reader = std.io.bufferedReader(input_stream.reader());
-    var in_stream = buf_reader.reader();
+fn sumCalibrationValues(reader: anytype) u32 {
+    var line_it = TextReader.read(reader);
 
-    var buf: [1024]u8 = undefined;
     var total: u32 = 0;
-    while (in_stream.readUntilDelimiterOrEof(&buf, '\n') catch "0") |line| {
+    while (line_it.next() catch null) |line| {
         const nr = getNumberFromLine(line);
         total += nr;
     }
@@ -80,6 +79,6 @@ pub fn main() !void {
     var file = try std.fs.cwd().openFile("../input.txt", .{});
     defer file.close();
 
-    const total = sumCalibrationValues(File, &file);
+    const total = sumCalibrationValues(file.reader());
     print("Total: {}\n", .{total});
 }
