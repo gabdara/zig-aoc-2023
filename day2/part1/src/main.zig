@@ -30,17 +30,32 @@ const Bag = struct {
     green: u8,
     blue: u8,
 
-    fn getRGB(self: Bag) RGB {
-        return RGB{ self.red, self.green, self.blue };
-    }
-
     pub fn run(self: Bag, reader: anytype) !u32 {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena.deinit();
 
         const allocator = arena.allocator();
+        var games = try Bag.getGames(allocator, reader);
 
-        var games = std.ArrayList(Game).init(allocator);
+        const bag_rgb = self.getRGB();
+        var total: u32 = 0;
+        games: for (games.items) |game| {
+            for (game.rolls.items) |roll| {
+                const validGame = @reduce(.And, roll <= bag_rgb);
+                if (!validGame) continue :games;
+            }
+            total += game.index;
+        }
+
+        return total;
+    }
+
+    fn getRGB(self: Bag) RGB {
+        return RGB{ self.red, self.green, self.blue };
+    }
+
+    fn getGames(allocator: Allocator, reader: anytype) !ArrayList(Game) {
+        var games = ArrayList(Game).init(allocator);
 
         var line_it = TextReader.read(reader);
         while (line_it.next() catch null) |line| {
@@ -78,17 +93,7 @@ const Bag = struct {
             try games.append(game);
         }
 
-        const bag_rgb = self.getRGB();
-        var total: u32 = 0;
-        games: for (games.items) |game| {
-            for (game.rolls.items) |roll| {
-                const validGame = @reduce(.And, roll <= bag_rgb);
-                if (!validGame) continue :games;
-            }
-            total += game.index;
-        }
-
-        return total;
+        return games;
     }
 };
 
