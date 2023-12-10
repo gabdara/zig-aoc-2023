@@ -44,19 +44,19 @@ const Bag = struct {
 
         var line_it = TextReader.read(reader);
         while (line_it.next() catch null) |line| {
-            var lineIt = tokenizeScalar(u8, line[5..], ':');
-            var game = Game.init(allocator, parseInt(u8, lineIt.next().?, 10) catch 0);
+            var tok_it = tokenizeScalar(u8, line[5..], ':');
+            var game = Game.init(allocator, parseInt(u8, tok_it.next().?, 10) catch 0);
 
-            var rollIt = tokenizeScalar(u8, lineIt.next().?, ';');
+            var roll_it = tokenizeScalar(u8, tok_it.next().?, ';');
             var i: u8 = 0;
-            while (rollIt.next()) |rollStr| {
+            while (roll_it.next()) |rollStr| {
                 var roll: RGB = @splat(0);
 
-                var cubesIt = tokenizeSequence(u8, rollStr[1..], ", ");
-                while (cubesIt.next()) |cubesLine| {
-                    var cubeIt = tokenizeScalar(u8, cubesLine, ' ');
-                    const cube_no = parseInt(u8, cubeIt.next().?, 10) catch 0;
-                    const cube_type = cubeIt.next().?;
+                var cubes_it = tokenizeSequence(u8, rollStr[1..], ", ");
+                while (cubes_it.next()) |cubesLine| {
+                    var cube_it = tokenizeScalar(u8, cubesLine, ' ');
+                    const cube_no = parseInt(u8, cube_it.next().?, 10) catch 0;
+                    const cube_type = cube_it.next().?;
 
                     var pos: u8 = undefined;
                     if (std.mem.eql(u8, cube_type, "red")) {
@@ -78,11 +78,11 @@ const Bag = struct {
             try games.append(game);
         }
 
-        const bagRGB = self.getRGB();
+        const bag_rgb = self.getRGB();
         var total: u32 = 0;
         games: for (games.items) |game| {
             for (game.rolls.items) |roll| {
-                const validGame = @reduce(.And, roll <= bagRGB);
+                const validGame = @reduce(.And, roll <= bag_rgb);
                 if (!validGame) continue :games;
             }
             total += game.index;
