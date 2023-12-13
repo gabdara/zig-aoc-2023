@@ -1,5 +1,5 @@
 const std = @import("std");
-const TextReader = @import("text-reader.zig").TextReader;
+const TextReader = @import("TextReader.zig");
 const print = std.debug.print;
 const parseInt = std.fmt.parseInt;
 const tokenizeScalar = std.mem.tokenizeScalar;

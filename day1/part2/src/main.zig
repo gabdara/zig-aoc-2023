@@ -1,5 +1,5 @@
 const std = @import("std");
-const TextReader = @import("text-reader.zig").TextReader;
+const TextReader = @import("TextReader.zig");
 const print = std.debug.print;
 const FixedBufferStream = std.io.FixedBufferStream;
 const File = std.fs.File;
