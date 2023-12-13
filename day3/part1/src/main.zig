@@ -23,7 +23,7 @@ test "Day 3: part 1" {
 
     var input_stream = std.io.fixedBufferStream(input);
 
-    const total = run(input_stream.reader(), 10);
+    const total = try run(input_stream.reader(), 10);
 
     try std.testing.expectEqual(total, 4361);
 }
@@ -38,7 +38,8 @@ fn run(reader: anytype, comptime line_len: usize) !usize {
 
     var line_it = TextReader.read(reader);
 
-    var line0 = try allocator.dupe(u8, "." ** line_len);
+    const empty_line = "." ** line_len;
+    var line0 = try allocator.dupe(u8, empty_line);
 
     var next_line: ?[]const u8 = line_it.next() catch null;
     var line1 = try allocator.dupe(u8, next_line.?);
@@ -59,37 +60,7 @@ fn run(reader: anytype, comptime line_len: usize) !usize {
                 .numbers = ArrayList(usize).init(allocator),
             };
 
-            // numbers on same line
-            if (TextLine.getLeftNumber(line1, pos)) |number| {
-                try symbol.numbers.append(number);
-            }
-            if (TextLine.getRightNumber(line1, pos)) |number| {
-                try symbol.numbers.append(number);
-            }
-
-            // numbers on previous line
-            if (TextLine.getFullNumber(line0, pos)) |number| {
-                try symbol.numbers.append(number);
-            } else {
-                if (TextLine.getLeftNumber(line0, pos)) |number| {
-                    try symbol.numbers.append(number);
-                }
-                if (TextLine.getRightNumber(line0, pos)) |number| {
-                    try symbol.numbers.append(number);
-                }
-            }
-
-            // numbers on next line
-            if (TextLine.getFullNumber(line2, pos)) |number| {
-                try symbol.numbers.append(number);
-            } else {
-                if (TextLine.getLeftNumber(line2, pos)) |number| {
-                    try symbol.numbers.append(number);
-                }
-                if (TextLine.getRightNumber(line2, pos)) |number| {
-                    try symbol.numbers.append(number);
-                }
-            }
+            try symbol.findAdjacentNumbers([3][]u8{ line0, line1, line2 });
 
             if (symbol.numbers.items.len > 0) {
                 try symbols.append(symbol);
@@ -100,7 +71,7 @@ fn run(reader: anytype, comptime line_len: usize) !usize {
 
         @memcpy(line0, line1);
         @memcpy(line1, line2);
-        @memcpy(line2, next_line orelse "." ** line_len);
+        @memcpy(line2, next_line orelse empty_line);
 
         line_index += 1;
     }
@@ -128,13 +99,57 @@ const Symbol = struct {
     pub fn isSymbol(c: u8) bool {
         return c != '.' and !isAlphanumeric(c);
     }
+
+    /// Given the symbol sits between two lines, find the adjacent numbers.
+    /// eg. symbol position on lines, adjacent numbers [123, 56]
+    /// ...123...
+    /// ....*....
+    /// .4...56..
+    pub fn findAdjacentNumbers(self: *Symbol, lines: [3][]u8) !void {
+        const pos = self.position;
+        const line0 = lines[0];
+        const line1 = lines[1];
+        const line2 = lines[2];
+
+        // numbers on same line
+        if (TextLine.getLeftNumber(line1, pos)) |number| {
+            try self.numbers.append(number);
+        }
+        if (TextLine.getRightNumber(line1, pos)) |number| {
+            try self.numbers.append(number);
+        }
+
+        // numbers on previous line
+        if (TextLine.getFullNumber(line0, pos)) |number| {
+            try self.numbers.append(number);
+        } else {
+            if (TextLine.getLeftNumber(line0, pos)) |number| {
+                try self.numbers.append(number);
+            }
+            if (TextLine.getRightNumber(line0, pos)) |number| {
+                try self.numbers.append(number);
+            }
+        }
+
+        // numbers on next line
+        if (TextLine.getFullNumber(line2, pos)) |number| {
+            try self.numbers.append(number);
+        } else {
+            if (TextLine.getLeftNumber(line2, pos)) |number| {
+                try self.numbers.append(number);
+            }
+            if (TextLine.getRightNumber(line2, pos)) |number| {
+                try self.numbers.append(number);
+            }
+        }
+    }
 };
 
 pub fn main() !void {
     var file = try std.fs.cwd().openFile("../input.txt", .{});
     defer file.close();
 
-    const total = run(file.reader(), 140);
+    const total = try run(file.reader(), 140);
 
-    print("Total: {!d}\n", .{total});
+    print("Total: {d}\n", .{total});
 }
