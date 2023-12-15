@@ -19,13 +19,13 @@ test "Day 2: part 2" {
 
     var input_stream = std.io.fixedBufferStream(input);
 
-    const total = Bag.run(input_stream.reader());
+    const total = Bag.solvePuzzle(input_stream.reader());
 
     try std.testing.expectEqual(total, 2286);
 }
 
 const Bag = struct {
-    pub fn run(reader: anytype) !u32 {
+    pub fn solvePuzzle(reader: anytype) !u32 {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena.deinit();
 
@@ -112,7 +112,7 @@ pub fn main() !void {
     var file = try std.fs.cwd().openFile("../input.txt", .{});
     defer file.close();
 
-    const total = Bag.run(file.reader());
+    const total = Bag.solvePuzzle(file.reader());
 
     print("Total: {!d}\n", .{total});
 }

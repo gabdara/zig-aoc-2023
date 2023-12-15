@@ -13,7 +13,7 @@ test "Day 1: part 1" {
     ;
 
     var input_stream = std.io.fixedBufferStream(input);
-    const total = sumCalibrationValues(input_stream.reader());
+    const total = solvePuzzle(input_stream.reader());
 
     try std.testing.expectEqual(total, 142);
 }
@@ -29,7 +29,7 @@ fn getNumberFromLine(line: []const u8) u8 {
     return std.fmt.parseInt(u8, nrStr, 10) catch 0;
 }
 
-fn sumCalibrationValues(reader: anytype) u32 {
+fn solvePuzzle(reader: anytype) u32 {
     var line_it = TextReader.read(reader);
 
     var total: u32 = 0;
@@ -45,6 +45,6 @@ pub fn main() !void {
     var file = try std.fs.cwd().openFile("../input.txt", .{});
     defer file.close();
 
-    const total = sumCalibrationValues(file.reader());
+    const total = solvePuzzle(file.reader());
     print("Total: {}\n", .{total});
 }

@@ -20,7 +20,7 @@ test "Day 2: part 1" {
     var input_stream = std.io.fixedBufferStream(input);
 
     const bag = Bag{ .red = 12, .green = 13, .blue = 14 };
-    const total = bag.run(input_stream.reader());
+    const total = bag.solvePuzzle(input_stream.reader());
 
     try std.testing.expectEqual(total, 8);
 }
@@ -30,7 +30,7 @@ const Bag = struct {
     green: u8,
     blue: u8,
 
-    pub fn run(self: Bag, reader: anytype) !u32 {
+    pub fn solvePuzzle(self: Bag, reader: anytype) !u32 {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena.deinit();
 
@@ -113,7 +113,7 @@ pub fn main() !void {
     defer file.close();
 
     const bag = Bag{ .red = 12, .green = 13, .blue = 14 };
-    const total = bag.run(file.reader());
+    const total = bag.solvePuzzle(file.reader());
 
     print("Total: {!d}\n", .{total});
 }
